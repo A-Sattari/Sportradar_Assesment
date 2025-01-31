@@ -7,7 +7,6 @@ public class Match(int id, string homeTeam, string awayTeam)
     public string AwayTeam { get; private set; } = awayTeam;
     public int HomeScore { get; private set; } = 0;
     public int AwayScore { get; private set; } = 0;
-    public bool IsOver { get; set; } = false;
 
     public void UpdateScore(int homeTeamScore, int awayTeamScore)
     {

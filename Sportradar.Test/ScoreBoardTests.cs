@@ -3,10 +3,12 @@ namespace Sportradar.Test;
 public class ScoreBoardTests
 {
     private readonly ScoreBoard scoreBoard;
+    private readonly IMatchRepository matchRepo;
 
     public ScoreBoardTests()
     {
-        scoreBoard = new ScoreBoard();
+        matchRepo = new MatchRepository();
+        scoreBoard = new ScoreBoard(matchRepo);
     }
 
     [Fact]
@@ -27,9 +29,9 @@ public class ScoreBoardTests
     [Fact]
     public void StartMatch_NoTeamName_ThrowsException()
     {
-        Assert.Throws<ArgumentException>(() => scoreBoard.StartMatch("", "Canada"));
-        Assert.Throws<ArgumentException>(() => scoreBoard.StartMatch("Mexico", ""));
-        Assert.Throws<ArgumentException>(() => scoreBoard.StartMatch("", ""));
+        Assert.Throws<ArgumentNullException>(() => scoreBoard.StartMatch("", "Canada"));
+        Assert.Throws<ArgumentNullException>(() => scoreBoard.StartMatch("Mexico", ""));
+        Assert.Throws<ArgumentNullException>(() => scoreBoard.StartMatch("", ""));
     }
 
     [Fact]
@@ -58,6 +60,16 @@ public class ScoreBoardTests
         Assert.Equal(5, match.AwayScore);
     }
 
+    [Fact]
+    public void UpdateScore_NonExistingTeam_ThrowsException()
+    {
+        // Arrange
+        scoreBoard.StartMatch("Japan", "Iran");
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => scoreBoard.UpdateScore(505, 1, 1));
+    }
+
     [Theory]
     [InlineData(-1, 0)]
     [InlineData(0, -1)]
@@ -78,19 +90,19 @@ public class ScoreBoardTests
         var match5 = scoreBoard.StartMatch("Iraq", "Australia");
 
         scoreBoard.UpdateScore(match1.Id, 0, 5);
-        scoreBoard.UpdateScore(match2.Id, 10, 2);
+        scoreBoard.UpdateScore(match2.Id, 10, 2); // Brazil vs. Argentina
         scoreBoard.UpdateScore(match3.Id, 2, 2);
-        scoreBoard.UpdateScore(match4.Id, 6, 6);
+        scoreBoard.UpdateScore(match4.Id, 6, 6); // Uruguay vs. Italy
         scoreBoard.UpdateScore(match5.Id, 3, 1);
 
         // Act
-        var summary = scoreBoard.GetSummary();
+        var summary = scoreBoard.GetSummary().ToList();
 
         // Assert
         Assert.Equal(5, summary.Count);
         Assert.Equal("Uruguay", summary[0].HomeTeam);
         Assert.Equal("Italy", summary[0].AwayTeam);
-        Assert.Equal("Spain", summary[1].HomeTeam);
-        Assert.Equal("Brazil", summary[1].AwayTeam);
+        Assert.Equal("Brazil", summary[1].HomeTeam);
+        Assert.Equal("Argentina", summary[1].AwayTeam);
     }
 }
