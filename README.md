@@ -1,0 +1,1 @@
+The type of the main project is a .NET library and not a console app as mentioned in the requirements.
